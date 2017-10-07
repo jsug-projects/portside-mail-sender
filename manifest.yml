@@ -1,0 +1,8 @@
+applications:
+- name: portside-mail-sender
+  buildpack: https://github.com/cloudfoundry/java-buildpack#v3.19
+  memory: 512m
+  path: target/portside-mail-sender-0.0.1-SNAPSHOT.jar
+  services:
+  - portside-mail   # cf create-user-provided-service portside-mail -p '{"credentials":{"uri":"smtp://<user>:<password>@smtp.sendgrid.net:587"}}'
+  - portside-rabbit # cf create-service p-rabbitmq standard portside-rabbit

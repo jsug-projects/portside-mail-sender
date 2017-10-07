@@ -1,0 +1,47 @@
+package jsug.portside.mailsender;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import javax.mail.internet.MimeMessage;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.stream.messaging.Sink;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import com.icegreen.greenmail.junit.GreenMailRule;
+import com.icegreen.greenmail.util.ServerSetupTest;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+public class MailSenderSinkTest {
+	@Autowired
+	Sink sink;
+	
+	@Autowired
+	PortsideMailProperties portsideMailProperties;
+
+	@Rule
+	public final GreenMailRule greenMail = new GreenMailRule(ServerSetupTest.SMTP);
+
+	@Test
+	public void sendMail() throws Exception {
+		sink.input().send(MessageBuilder.withPayload(new MailData("subject", "body", "kouhei.toki@gmail.com")).build());
+		assertThat(greenMail.waitForIncomingEmail(3000, 1)).isTrue();
+		MimeMessage[] receivedMessages = greenMail.getReceivedMessages();
+		assertThat(receivedMessages.length).isEqualTo(1);
+		assertThat(receivedMessages[0].getContent()).isEqualTo("body\r\n");
+		assertThat(receivedMessages[0].getSubject()).isEqualTo("subject");
+		assertThat(receivedMessages[0].getFrom().length).isEqualTo(1);
+		assertThat(receivedMessages[0].getFrom()[0].toString())
+				.isEqualTo(portsideMailProperties.getFrom());
+		assertThat(receivedMessages[0].getAllRecipients().length).isEqualTo(1);
+		assertThat(receivedMessages[0].getAllRecipients()[0].toString())
+				.isEqualTo("kouhei.toki@gmail.com");
+	}
+
+}

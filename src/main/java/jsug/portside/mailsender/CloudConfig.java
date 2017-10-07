@@ -2,6 +2,7 @@ package jsug.portside.mailsender;
 
 import java.util.Properties;
 
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.boot.autoconfigure.mail.MailProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.config.java.AbstractCloudConfig;
@@ -32,5 +33,10 @@ public class CloudConfig extends AbstractCloudConfig {
 			}
 		}
 		return mailSender;
+	}
+
+	@Bean
+	ConnectionFactory rabbitConnectionFactory() {
+		return connectionFactory().rabbitConnectionFactory();
 	}
 }
